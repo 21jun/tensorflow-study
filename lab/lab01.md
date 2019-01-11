@@ -43,7 +43,7 @@ print(sess.run(adder_node, feed_dict={a: [1, 3], b: [2, 4]})) # [3. 7.]
 
 
 ### Tensor / Ranks, Shapes and Types
-
+```py
 1. Rank
     몇차원의 텐서인지
 
@@ -56,7 +56,7 @@ print(sess.run(adder_node, feed_dict={a: [1, 3], b: [2, 4]})) # [3. 7.]
     몇개의 원소를 가지고 있는지
 
     t = [[1,2,3], [4,5,6], [7,8,9]]
-    shape = [3,3]           |   3개짜리를 3개가지고 있음
+    shape = [3,3]           |   3 개짜리를 3 개가지고 있음
 
 3. Type
     데이터 형식
@@ -64,3 +64,4 @@ print(sess.run(adder_node, feed_dict={a: [1, 3], b: [2, 4]})) # [3. 7.]
     DT_FLOAT    tf.float32
     DT_DOUBLE   tf.float64
     DT_INT32    tf.int32
+```
