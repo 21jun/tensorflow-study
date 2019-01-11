@@ -1,3 +1,4 @@
+## ML lab 01 - TensorFlow의 설치및 기본적인 operations (new)
 [https://youtu.be/-57Ne86Ia8w]
 
 ```py
@@ -16,3 +17,8 @@ print("sess.run(node3)", sess.run(node3))   # sess.run(node3) 7.0
 
     Session을 생성하고, run(실행) 함으로써 텐서플로우는 연산작업을 수행
     그냥 노드를 print 해보면 타입, 형식등의 정보를 출력함
+
+### 텐서플로우 실행도
+
+
+![실행도](lab01-01.png)
