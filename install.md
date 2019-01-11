@@ -3,7 +3,7 @@
 
     특정경로(C:\ProgramData\Anaconda3\envs) 지정하기 위해서는
 ```
-    conda create -p C:/ProgramData/Anaconda3/envs/MYENV python=3.XX anaconda
+conda create -p C:/ProgramData/Anaconda3/envs/MYENV python=3.XX anaconda
 ```
 ## Tensorflow gpu 설치 (cuDNN, CUDA)
 
