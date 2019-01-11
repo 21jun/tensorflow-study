@@ -21,4 +21,4 @@ print("sess.run(node3)", sess.run(node3))   # sess.run(node3) 7.0
 ### 텐서플로우 실행도
 
 
-![실행도](lab01-01.png)
+![실행도](img/lab01-01.png)
