@@ -21,12 +21,16 @@ X   |   Y
 
 #### Cost function
 
-![cost function, m = 데이터의 갯수](img/lec02-02.png)
+![img](img/lec02-02.png)
 
-    cost = (H(x)-y)^2
+    cost function, m = 데이터의 갯수
+
+    cost_i = (H(x_i)-y_i)^2
 
     제곱으로 계산하게되면 음수양수 문제해결 + 차이가 클수록 더큰 페널티를 줄 수 있음
 
 #### Goal : cost를 최소화 하자
 
-![cost값이 최소화되는 W,b 값을 구하자 = 학습](img/lec02-03.png)
+![img](img/lec02-03.png)
+
+    cost값이 최소화되는 W,b 값을 구하자 = 학습
