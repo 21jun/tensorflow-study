@@ -45,7 +45,7 @@ for step in range(2001):
     lec02의 예상대로 W = 1 , b = 0 으로 수렴함
 
 
-![img](img/lab02-01)
+![img](img/lab02-01.png)
 
     train 노드는 cost, hypothesis, w, b 로 연결되어 있으므로 train만 run 하면 학습이 이뤄짐
 
