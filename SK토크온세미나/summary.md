@@ -10,7 +10,7 @@
 
 ![img](img/per.png)
 
-![img](img/tf_tpye.png)
+![img](img/tf_type.png)
 
 ## Optimizer 종류
     GD(Gradient Descent)
