@@ -48,6 +48,8 @@
     -> 새로운 cost function이 필요
 ![img](img/lec05-04.png)
 
+    울퉁불퉁해진 원인이 e 이므로 log를 통해 해결함
+
     y = 0 일때 0으로 예측하면 cost = 0
     y = 1 일때 0으로 예측하면 cost = inf
 
