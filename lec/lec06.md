@@ -35,6 +35,9 @@
 
     한개의 원소(인스턴스) 에만 적용할때의 식
 
+    이 식은 이전의 Logistic 의 cost 함수와 같다.
+    [http://mazdah.tistory.com/791] 유도
+
 ![img](img/lec06-04.png)
 
     전체 데이터에 적용할 식
