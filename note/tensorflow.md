@@ -29,9 +29,24 @@ print(sess.run(b))          # [1. 2.]
 
     첫번째 인자로 list를 , 두번째 인자로 axis 를 입력받는다(몇차원에서 계산할지)
 
+    one-hot 인코딩되어있는 데이터셋에서 사용하면 됨
 ```py
 a = sess.run(hypothesis, feed_dict={X: [[1, 11, 7, 9]]})
 print(a, sess.run(tf.argmax(a, 1)))
 
 # [[1.3890490e-03 9.9860185e-01 9.0613084e-06]] [1]
+```
+
+### eval 함수
+
+    sses.run() 과 같은 효과로, 텐서뒤에 .eval() 으로 실행시킨다.
+    session=sess 로 세션을 지정해줄수도 있다.
+    [https://stackoverflow.com/questions/33610685/in-tensorflow-what-is-the-difference-between-session-run-and-tensor-eval]
+
+    차이점은 eval은 한개의 텐서를 실행시키는 것이고,
+    Session.run 은 한번에 여러개의 텐서들을 넣어 실행시킬 수 있다.
+
+```py
+accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
+accuracy.eval(session=sess, feed_dict={X: mnist.test.images, Y: mnist.test.labels})
 ```
