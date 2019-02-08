@@ -72,7 +72,7 @@ Accuracy:  1.0
 
 ```
     레이어1 구상도
-![img](img/lab09-01.png)
+![img](img/lab09-03.png)
 
 
     x 입력값은 2개이다 (x1,x2) 이후 10개의 regression(2x10행렬 + 1x10 bias) 을 통과해여 
