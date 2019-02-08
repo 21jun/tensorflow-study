@@ -1,80 +1,85 @@
-# Lab 6 Softmax Classifier
+# Lab 9 XOR
 import tensorflow as tf
 import numpy as np
+
 tf.set_random_seed(777)  # for reproducibility
 
-# Predicting animal type based on various features
-xy = np.loadtxt('data-04-zoo.csv', delimiter=',', dtype=np.float32)
-x_data = xy[:, 0:-1]
-y_data = xy[:, [-1]]
+x_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
+y_data = np.array([[0], [1], [1], [0]], dtype=np.float32)
 
-print(x_data.shape, y_data.shape)
+X = tf.placeholder(tf.float32, [None, 2], name="x")
+Y = tf.placeholder(tf.float32, [None, 1], name="y")
 
-'''
-(101, 16) (101, 1)
-'''
+with tf.name_scope("Layer1"):
+    W1 = tf.Variable(tf.random_normal([2, 2]), name="weight_1")
+    b1 = tf.Variable(tf.random_normal([2]), name="bias_1")
+    layer1 = tf.sigmoid(tf.matmul(X, W1) + b1)
 
-nb_classes = 7  # 0 ~ 6
+    tf.summary.histogram("W1", W1)
+    tf.summary.histogram("b1", b1)
+    tf.summary.histogram("Layer1", layer1)
 
-X = tf.placeholder(tf.float32, [None, 16])
-Y = tf.placeholder(tf.int32, [None, 1])  # 0 ~ 6
 
-Y_one_hot = tf.one_hot(Y, nb_classes)  # one hot
-print("one_hot:", Y_one_hot)
-Y_one_hot = tf.reshape(Y_one_hot, [-1, nb_classes])
-print("reshape one_hot:", Y_one_hot)
+with tf.name_scope("Layer2"):
+    W2 = tf.Variable(tf.random_normal([2, 1]), name="weight_2")
+    b2 = tf.Variable(tf.random_normal([1]), name="bias_2")
+    hypothesis = tf.sigmoid(tf.matmul(layer1, W2) + b2)
 
-'''
-one_hot: Tensor("one_hot:0", shape=(?, 1, 7), dtype=float32)
-reshape one_hot: Tensor("Reshape:0", shape=(?, 7), dtype=float32)
-'''
+    tf.summary.histogram("W2", W2)
+    tf.summary.histogram("b2", b2)
+    tf.summary.histogram("Hypothesis", hypothesis)
 
-W = tf.Variable(tf.random_normal([16, nb_classes]), name='weight')
-b = tf.Variable(tf.random_normal([nb_classes]), name='bias')
+# cost/loss function
+with tf.name_scope("Cost"):
+    cost = -tf.reduce_mean(Y * tf.log(hypothesis) + (1 - Y) * tf.log(1 - hypothesis))
+    tf.summary.scalar("Cost", cost)
 
-# tf.nn.softmax computes softmax activations
-# softmax = exp(logits) / reduce_sum(exp(logits), dim)
-logits = tf.matmul(X, W) + b
-hypothesis = tf.nn.softmax(logits)
+with tf.name_scope("Train"):
+    train = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
 
-# Cross entropy cost/loss
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,
-                                                                 labels=tf.stop_gradient([Y_one_hot])))
-optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
-
-prediction = tf.argmax(hypothesis, 1)
-correct_prediction = tf.equal(prediction, tf.argmax(Y_one_hot, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+# Accuracy computation
+# True if hypothesis>0.5 else False
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted, Y), dtype=tf.float32))
+tf.summary.scalar("accuracy", accuracy)
 
 # Launch graph
 with tf.Session() as sess:
+    # tensorboard --logdir=./logs/xor_logs
+    merged_summary = tf.summary.merge_all()
+    writer = tf.summary.FileWriter("./logs/xor_logs_r0_01")
+    writer.add_graph(sess.graph)  # Show the graph
+
+    # Initialize TensorFlow variables
     sess.run(tf.global_variables_initializer())
 
-    for step in range(2001):
-        _, cost_val, acc_val = sess.run([optimizer, cost, accuracy], feed_dict={X: x_data, Y: y_data})
-                                        
+    for step in range(10001):
+        _, summary, cost_val = sess.run(
+            [train, merged_summary, cost], feed_dict={X: x_data, Y: y_data}
+        )
+        writer.add_summary(summary, global_step=step)
+
         if step % 100 == 0:
-            print("Step: {:5}\tCost: {:.3f}\tAcc: {:.2%}".format(step, cost_val, acc_val))
+            print(step, cost_val)
 
-    # Let's see if we can predict
-    pred = sess.run(prediction, feed_dict={X: x_data})
-    # y_data: (N,1) = flatten => (N, ) matches pred.shape
-    for p, y in zip(pred, y_data.flatten()):
-        print("[{}] Prediction: {} True Y: {}".format(p == int(y), p, int(y)))
+    # Accuracy report
+    h, p, a = sess.run(
+        [hypothesis, predicted, accuracy], feed_dict={X: x_data, Y: y_data}
+    )
+    
+    print(f"\nHypothesis:\n{h} \nPredicted:\n{p} \nAccuracy:\n{a}")
 
-'''
-Step:     0 Loss: 5.106 Acc: 37.62%
-Step:   100 Loss: 0.800 Acc: 79.21%
-Step:   200 Loss: 0.486 Acc: 88.12%
-...
-Step:  1800	Loss: 0.060	Acc: 100.00%
-Step:  1900	Loss: 0.057	Acc: 100.00%
-Step:  2000	Loss: 0.054	Acc: 100.00%
-[True] Prediction: 0 True Y: 0
-[True] Prediction: 0 True Y: 0
-[True] Prediction: 3 True Y: 3
-...
-[True] Prediction: 0 True Y: 0
-[True] Prediction: 6 True Y: 6
-[True] Prediction: 1 True Y: 1
-'''
+"""
+Hypothesis:
+[[6.1310326e-05]
+ [9.9993694e-01]
+ [9.9995077e-01]
+ [5.9751470e-05]] 
+Predicted:
+[[0.]
+ [1.]
+ [1.]
+ [0.]] 
+Accuracy:
+1.0
+"""

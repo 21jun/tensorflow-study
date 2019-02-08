@@ -17,7 +17,7 @@ print(sess.run(a))          # 1.5
 reduce_mean 함수는 차원을 모두 제거되고 단하나의 스칼라값(평균)을 리턴함
 (1+1+2+2)/4 = 1.5
 
-axis argument를 설정하여 몇차원까지 남기고 평균을 구할지 설정가능 (default = 0)
+axis argument를 설정하여 몇차원까지 남기고 평균을 구할지 설정가능 (default = 모든 값을 평균내라)
 
 b = tf.reduce_mean(x, axis = 1) 
 print(sess.run(b))          # [1. 2.]
@@ -25,7 +25,7 @@ print(sess.run(b))          # [1. 2.]
 
 ### argmax 함수
 
-    list 중 가장큰 argument의 인덱스를 반환하는 함수
+    list 중 가장큰 argument의 [인덱스]를 반환하는 함수
 
     첫번째 인자로 list를 , 두번째 인자로 axis 를 입력받는다(몇차원에서 계산할지)
 
@@ -36,6 +36,59 @@ print(a, sess.run(tf.argmax(a, 1)))
 
 # [[1.3890490e-03 9.9860185e-01 9.0613084e-06]] [1]
 ```
+
+### reshape 함수
+
+    텐서의 shape을 바꿔주는 함수
+
+    shape=[] 으로 shape을 지정해주면 해당 shape으로 바꿔준다
+
+    보통 제일 안쪽 shape은 건들지 않는다.. 예시에서는 3
+
+    맨앞에 -1을 적어주면 자동으로 계산된 크기의 shape으로 바꾼다
+
+```py
+t = np.array([[[0, 1, 2], 
+               [3, 4, 5]],
+              
+              [[6, 7, 8], 
+               [9, 10, 11]]])
+t.shape # (2, 2, 3)
+
+tf.reshape(t, shape=[-1, 3]).eval()
+'''
+array([[ 0,  1,  2],
+       [ 3,  4,  5],
+       [ 6,  7,  8],
+       [ 9, 10, 11]])
+'''
+```   
+> squeeze
+
+    텐서의 차원을 1단계 줄여준다
+```py
+tf.squeeze([[0], [1], [2]]).eval()
+# array([0, 1, 2], dtype=int32)
+```
+
+> expand_dims
+
+    얼마나 차원을 늘릴지 지정해주면 텐서의 차원을 늘려준다. (예시는 1만큼늘림)
+```py
+tf.expand_dims([0, 1, 2], 1).eval()
+'''
+array([[0],
+       [1],
+       [2]], dtype=int32)
+'''
+```
+
+### one_hot 함수
+
+    랭크가 1증가하게됨..
+
+    추가
+
 
 ### eval 함수
 
