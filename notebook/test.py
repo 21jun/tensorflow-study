@@ -1,85 +1,94 @@
-# Lab 9 XOR
+# Lab 10 MNIST and NN
 import tensorflow as tf
-import numpy as np
+import random
+# import matplotlib.pyplot as plt
 
-tf.set_random_seed(777)  # for reproducibility
+from tensorflow.examples.tutorials.mnist import input_data
 
-x_data = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.float32)
-y_data = np.array([[0], [1], [1], [0]], dtype=np.float32)
+tf.set_random_seed(777)  # reproducibility
 
-X = tf.placeholder(tf.float32, [None, 2], name="x")
-Y = tf.placeholder(tf.float32, [None, 1], name="y")
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+# Check out https://www.tensorflow.org/get_started/mnist/beginners for
+# more information about the mnist dataset
 
-with tf.name_scope("Layer1"):
-    W1 = tf.Variable(tf.random_normal([2, 2]), name="weight_1")
-    b1 = tf.Variable(tf.random_normal([2]), name="bias_1")
-    layer1 = tf.sigmoid(tf.matmul(X, W1) + b1)
+# parameters
+learning_rate = 0.001
+training_epochs = 15
+batch_size = 100
 
-    tf.summary.histogram("W1", W1)
-    tf.summary.histogram("b1", b1)
-    tf.summary.histogram("Layer1", layer1)
+# input place holders
+X = tf.placeholder(tf.float32, [None, 784])
+Y = tf.placeholder(tf.float32, [None, 10])
 
+# weights & bias for nn layers
+W1 = tf.Variable(tf.random_normal([784, 256]))
+b1 = tf.Variable(tf.random_normal([256]))
+L1 = tf.nn.relu(tf.matmul(X, W1) + b1)
 
-with tf.name_scope("Layer2"):
-    W2 = tf.Variable(tf.random_normal([2, 1]), name="weight_2")
-    b2 = tf.Variable(tf.random_normal([1]), name="bias_2")
-    hypothesis = tf.sigmoid(tf.matmul(layer1, W2) + b2)
+W2 = tf.Variable(tf.random_normal([256, 256]))
+b2 = tf.Variable(tf.random_normal([256]))
+L2 = tf.nn.relu(tf.matmul(L1, W2) + b2)
 
-    tf.summary.histogram("W2", W2)
-    tf.summary.histogram("b2", b2)
-    tf.summary.histogram("Hypothesis", hypothesis)
+W3 = tf.Variable(tf.random_normal([256, 10]))
+b3 = tf.Variable(tf.random_normal([10]))
+hypothesis = tf.matmul(L2, W3) + b3
 
-# cost/loss function
-with tf.name_scope("Cost"):
-    cost = -tf.reduce_mean(Y * tf.log(hypothesis) + (1 - Y) * tf.log(1 - hypothesis))
-    tf.summary.scalar("Cost", cost)
+# define cost/loss & optimizer
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+    logits=hypothesis, labels=Y))
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-with tf.name_scope("Train"):
-    train = tf.train.AdamOptimizer(learning_rate=0.01).minimize(cost)
+# initialize
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
 
-# Accuracy computation
-# True if hypothesis>0.5 else False
-predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
-accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted, Y), dtype=tf.float32))
-tf.summary.scalar("accuracy", accuracy)
+# train my model
+for epoch in range(training_epochs):
+    avg_cost = 0
+    total_batch = int(mnist.train.num_examples / batch_size)
 
-# Launch graph
-with tf.Session() as sess:
-    # tensorboard --logdir=./logs/xor_logs
-    merged_summary = tf.summary.merge_all()
-    writer = tf.summary.FileWriter("./logs/xor_logs_r0_01")
-    writer.add_graph(sess.graph)  # Show the graph
+    for i in range(total_batch):
+        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+        feed_dict = {X: batch_xs, Y: batch_ys}
+        c, _ = sess.run([cost, optimizer], feed_dict=feed_dict)
+        avg_cost += c / total_batch
 
-    # Initialize TensorFlow variables
-    sess.run(tf.global_variables_initializer())
+    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
 
-    for step in range(10001):
-        _, summary, cost_val = sess.run(
-            [train, merged_summary, cost], feed_dict={X: x_data, Y: y_data}
-        )
-        writer.add_summary(summary, global_step=step)
+print('Learning Finished!')
 
-        if step % 100 == 0:
-            print(step, cost_val)
+# Test model and check accuracy
+correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+print('Accuracy:', sess.run(accuracy, feed_dict={
+      X: mnist.test.images, Y: mnist.test.labels}))
 
-    # Accuracy report
-    h, p, a = sess.run(
-        [hypothesis, predicted, accuracy], feed_dict={X: x_data, Y: y_data}
-    )
-    
-    print(f"\nHypothesis:\n{h} \nPredicted:\n{p} \nAccuracy:\n{a}")
+# Get one and predict
+r = random.randint(0, mnist.test.num_examples - 1)
+print("Label: ", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))
+print("Prediction: ", sess.run(
+    tf.argmax(hypothesis, 1), feed_dict={X: mnist.test.images[r:r + 1]}))
 
-"""
-Hypothesis:
-[[6.1310326e-05]
- [9.9993694e-01]
- [9.9995077e-01]
- [5.9751470e-05]] 
-Predicted:
-[[0.]
- [1.]
- [1.]
- [0.]] 
-Accuracy:
-1.0
-"""
+# plt.imshow(mnist.test.images[r:r + 1].
+#           reshape(28, 28), cmap='Greys', interpolation='nearest')
+# plt.show()
+
+'''
+Epoch: 0001 cost = 141.207671860
+Epoch: 0002 cost = 38.788445864
+Epoch: 0003 cost = 23.977515479
+Epoch: 0004 cost = 16.315132428
+Epoch: 0005 cost = 11.702554882
+Epoch: 0006 cost = 8.573139748
+Epoch: 0007 cost = 6.370995680
+Epoch: 0008 cost = 4.537178684
+Epoch: 0009 cost = 3.216900532
+Epoch: 0010 cost = 2.329708954
+Epoch: 0011 cost = 1.715552875
+Epoch: 0012 cost = 1.189857912
+Epoch: 0013 cost = 0.820965160
+Epoch: 0014 cost = 0.624131458
+Epoch: 0015 cost = 0.454633765
+Learning Finished!
+Accuracy: 0.9455
+'''

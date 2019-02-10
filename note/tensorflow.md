@@ -22,6 +22,8 @@ axis argument를 설정하여 몇차원까지 남기고 평균을 구할지 설�
 b = tf.reduce_mean(x, axis = 1) 
 print(sess.run(b))          # [1. 2.]
 ```
+![img](img/axis.png)
+(가장 안쪽 axis == -1)
 
 ### argmax 함수
 
