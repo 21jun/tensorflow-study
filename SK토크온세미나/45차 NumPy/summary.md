@@ -1,3 +1,5 @@
+![img](img/cover.jpg)
+
 # NumPy
 
 ## Data Science 에서 다차원 배열의 필요성
