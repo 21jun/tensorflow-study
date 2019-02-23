@@ -75,3 +75,24 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
     cost = tf.reduce_mean(-tf.reduce_sum(Y * tf.log(hypothesis), axis=1))
 
     같이 구현해야 할것 (logits에 softmax를 적용한 hypothesis)
+
+## CNN 에서 필터의 크기
+
+    필터의 크기를 5x5, 7x7로 하는 것보다, 3x3 필터를 여러개 사용하는것이 계산량이 적음
+
+    그렇다면 가장빠른 1x1 필터를 사용하지 않는이유는?
+    
+    [https://iamaaditya.github.io/2016/03/one-by-one-convolution/]
+
+![img](img/cnn_1x1.png)
+
+    CS231n [https://youtu.be/pA4BsUK3oP4?t=1974]
+
+    Most simplistic explanation would be that 1x1 convolution leads to dimension reductionality. 
+    For example, an image of 200 x 200 with 50 features on convolution with 20 filters of 1x1 would
+    result in size of 200 x 200 x 20. But then again, is this is the best way to do dimensionality
+    reduction in the convoluational neural network? What about the efficacy vs efficiency?
+
+    1x1 필터는 인풋 이미지의 픽셀을 그대로 옮기지만, 각 픽셀의 feature를 1개로 줄이기때문에
+    200x200x50 의 인풋이 20개의 1x1 필터를 지나면, 200x200x20 의 정보만 남게됨..
+    이것은 차원을 줄이기 때문에 정보의 손실이 있음
