@@ -1,94 +1,86 @@
-# Lab 10 MNIST and NN
+# Lab 6 Softmax Classifier
 import tensorflow as tf
-import random
-# import matplotlib.pyplot as plt
+import numpy as np
+tf.set_random_seed(777)  # for reproducibility
 
-from tensorflow.examples.tutorials.mnist import input_data
+# Predicting animal type based on various features
+xy = np.loadtxt('data-04-zoo.csv', delimiter=',', dtype=np.float32)
+x_data = xy[:, 0:-1]
+y_data = xy[:, [-1]]
 
-tf.set_random_seed(777)  # reproducibility
-
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-# Check out https://www.tensorflow.org/get_started/mnist/beginners for
-# more information about the mnist dataset
-
-# parameters
-learning_rate = 0.001
-training_epochs = 15
-batch_size = 100
-
-# input place holders
-X = tf.placeholder(tf.float32, [None, 784])
-Y = tf.placeholder(tf.float32, [None, 10])
-
-# weights & bias for nn layers
-W1 = tf.Variable(tf.random_normal([784, 256]))
-b1 = tf.Variable(tf.random_normal([256]))
-L1 = tf.nn.relu(tf.matmul(X, W1) + b1)
-
-W2 = tf.Variable(tf.random_normal([256, 256]))
-b2 = tf.Variable(tf.random_normal([256]))
-L2 = tf.nn.relu(tf.matmul(L1, W2) + b2)
-
-W3 = tf.Variable(tf.random_normal([256, 10]))
-b3 = tf.Variable(tf.random_normal([10]))
-hypothesis = tf.matmul(L2, W3) + b3
-
-# define cost/loss & optimizer
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-    logits=hypothesis, labels=Y))
-optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
-
-# initialize
-sess = tf.Session()
-sess.run(tf.global_variables_initializer())
-
-# train my model
-for epoch in range(training_epochs):
-    avg_cost = 0
-    total_batch = int(mnist.train.num_examples / batch_size)
-
-    for i in range(total_batch):
-        batch_xs, batch_ys = mnist.train.next_batch(batch_size)
-        feed_dict = {X: batch_xs, Y: batch_ys}
-        c, _ = sess.run([cost, optimizer], feed_dict=feed_dict)
-        avg_cost += c / total_batch
-
-    print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.9f}'.format(avg_cost))
-
-print('Learning Finished!')
-
-# Test model and check accuracy
-correct_prediction = tf.equal(tf.argmax(hypothesis, 1), tf.argmax(Y, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-print('Accuracy:', sess.run(accuracy, feed_dict={
-      X: mnist.test.images, Y: mnist.test.labels}))
-
-# Get one and predict
-r = random.randint(0, mnist.test.num_examples - 1)
-print("Label: ", sess.run(tf.argmax(mnist.test.labels[r:r + 1], 1)))
-print("Prediction: ", sess.run(
-    tf.argmax(hypothesis, 1), feed_dict={X: mnist.test.images[r:r + 1]}))
-
-# plt.imshow(mnist.test.images[r:r + 1].
-#           reshape(28, 28), cmap='Greys', interpolation='nearest')
-# plt.show()
+print(x_data.shape, y_data.shape)
 
 '''
-Epoch: 0001 cost = 141.207671860
-Epoch: 0002 cost = 38.788445864
-Epoch: 0003 cost = 23.977515479
-Epoch: 0004 cost = 16.315132428
-Epoch: 0005 cost = 11.702554882
-Epoch: 0006 cost = 8.573139748
-Epoch: 0007 cost = 6.370995680
-Epoch: 0008 cost = 4.537178684
-Epoch: 0009 cost = 3.216900532
-Epoch: 0010 cost = 2.329708954
-Epoch: 0011 cost = 1.715552875
-Epoch: 0012 cost = 1.189857912
-Epoch: 0013 cost = 0.820965160
-Epoch: 0014 cost = 0.624131458
-Epoch: 0015 cost = 0.454633765
-Learning Finished!
-Accuracy: 0.9455
+(101, 16) (101, 1)
+'''
+
+nb_classes = 7  # 0 ~ 6
+
+X = tf.placeholder(tf.float32, [None, 16])
+Y = tf.placeholder(tf.int32, [None, 1])  # 0 ~ 6
+
+# 지금 입력데이터는 one hot이 아니고 0~6의 숫자로 되어있음
+# [0,0,0,0,0,0,1] 같은 one hot 으로 변경시켜야함
+Y_one_hot = tf.one_hot(Y, nb_classes)   # one hot
+print("one_hot:", Y_one_hot)            # one hot을 적용하면 rank가 1증가함
+# ex) [[1],[3]] -> [[[0,2,0,0,0,0,0]],[[0,0,0,1,0,0,0]]]
+
+# 우리가 원하는 모양으로 reshape 해야함 
+# [[[0,2,0,0,0,0,0]],[[0,0,0,1,0,0,0]]] -> [[0,2,0,0,0,0,0],[0,0,0,1,0,0,0]]
+Y_one_hot = tf.reshape(Y_one_hot, [-1, nb_classes]) # -1의 의미는 None처럼 갯수를 미정하는것
+print("reshape one_hot:", Y_one_hot)
+
+'''
+one_hot: Tensor("one_hot:0", shape=(?, 1, 7), dtype=float32)
+reshape one_hot: Tensor("Reshape:0", shape=(?, 7), dtype=float32)
+'''
+
+W = tf.Variable(tf.random_normal([16, nb_classes]), name='weight')
+b = tf.Variable(tf.random_normal([nb_classes]), name='bias')
+
+# tf.nn.softmax computes softmax activations
+# softmax = exp(logits) / reduce_sum(exp(logits), dim)
+logits = tf.matmul(X, W) + b
+hypothesis = tf.nn.softmax(logits)
+
+# Cross entropy cost/loss
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits,
+                                                                 labels=tf.stop_gradient([Y_one_hot])))
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
+
+prediction = tf.argmax(hypothesis, 1)
+correct_prediction = tf.equal(prediction, tf.argmax(Y_one_hot, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+# Launch graph
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+
+    for step in range(2001):
+        _, cost_val, acc_val = sess.run([optimizer, cost, accuracy], feed_dict={X: x_data, Y: y_data})
+                                        
+        if step % 100 == 0:
+            print("Step: {:5}\tCost: {:.3f}\tAcc: {:.2%}".format(step, cost_val, acc_val))
+
+    # Let's see if we can predict
+    pred = sess.run(prediction, feed_dict={X: x_data})
+    # y_data: (N,1) = flatten => (N, ) matches pred.shape
+    for p, y in zip(pred, y_data.flatten()):
+        print("[{}] Prediction: {} True Y: {}".format(p == int(y), p, int(y)))
+
+'''
+Step:     0 Loss: 5.106 Acc: 37.62%
+Step:   100 Loss: 0.800 Acc: 79.21%
+Step:   200 Loss: 0.486 Acc: 88.12%
+...
+Step:  1800	Loss: 0.060	Acc: 100.00%
+Step:  1900	Loss: 0.057	Acc: 100.00%
+Step:  2000	Loss: 0.054	Acc: 100.00%
+[True] Prediction: 0 True Y: 0
+[True] Prediction: 0 True Y: 0
+[True] Prediction: 3 True Y: 3
+...
+[True] Prediction: 0 True Y: 0
+[True] Prediction: 6 True Y: 6
+[True] Prediction: 1 True Y: 1
 '''
