@@ -138,3 +138,10 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
     3. In the linear regression, the independent variable can be correlated with each other. 
         On the contrary, in the logistic regression, the variable must not be correlated with each other.
 
+
+## Regression vs Classification
+    Supervised learning 은 문제의 타입에따라 2가지로 분류될 수 있다
+
+    1. Regression 은 기대되는 목적값이 Continous 한 경우에 사용됨 (공부시간이 늘수록 *점수*도 는다)
+
+    2. Classification 은 기대되는 목적값이 몇가지(2~) 로 한정된 경우 사용됨 (이미지넷, 개인지 고양이인지..)
